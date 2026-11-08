@@ -1,0 +1,792 @@
+--[[
+    Deоbfuѕcаtеԁ Wіtһ LeаkD
+    https://leakd.fr
+]]
+
+local function getCloneref(p1)
+  return cloneref and cloneref(game:GetService(p1)) or game:GetService(p1)
+end
+
+local players = getCloneref("Players")
+local runService = getCloneref("RunService")
+local httpService = getCloneref("HttpService")
+local localPlayer = players.LocalPlayer
+local character = localPlayer.Character or localPlayer.CharacterAdded:Wait()
+local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+local humanoid = character:WaitForChild("Humanoid")
+
+localPlayer.CharacterAdded:Connect(function(character2)
+  character = character2
+  humanoidRootPart = character2:WaitForChild("HumanoidRootPart", 6)
+  humanoid = character2:WaitForChild("Humanoid")
+end)
+
+local v1 = {
+  Enabled = false,
+  SelectedAction = "Bang",
+  Target = nil,
+  TargetCharacter = nil,
+  Connection = nil,
+  MainTrack = nil,
+  AnimIndex = 1,
+  Sine = 0,
+  Jerk = false,
+  JerkConnection = nil,
+  JerkTrack = nil,
+}
+
+local v2 = {
+  R6 = {
+    Humping = { { Id = "rbxassetid://214738896" }, { Id = "rbxassetid://189854234" } },
+    Jerk = { { Id = "rbxassetid://72042024" } },
+  },
+  R15 = {
+    Humping = { { Id = "rbxassetid://139634392782942" } },
+    Jerk = { { Id = "rbxassetid://698251653" } },
+  },
+}
+
+local v3 = {
+  Bang = {
+    Offset = CFrame.new(0, 0, 1.1),
+    Oscillation = { X = 0, Y = 0, Z = 1 },
+    UseAnimation = true,
+    AnimationType = "Humping",
+  },
+  HeadBang = {
+    Offset = CFrame.new(0, 1, -1.3),
+    Oscillation = { X = 0, Y = 0, Z = 1 },
+    FaceTarget = true,
+    UseAnimation = true,
+    AnimationType = "Humping",
+  },
+  ReverseBang = {
+    Offset = CFrame.new(0, 0.6, 1.7),
+    Oscillation = { X = 0, Y = 1, Z = 0 },
+    UseAnimation = false,
+  },
+  Cowgirl = {
+    Offset = CFrame.new(0, -2.1, 1),
+    Oscillation = { X = 0, Y = 0, Z = 1 },
+    UseAnimation = true,
+    AnimationType = "Humping",
+  },
+}
+
+local function f1(p2, animationType)
+  return (p2 == Enum.HumanoidRigType.R15 and v2.R15 or v2.R6)[animationType]
+end
+
+local function f2(text)
+  local lower = string.lower(text)
+  local list = {}
+
+  for _, value in ipairs(players:GetPlayers()) do
+    if string.sub(string.lower(value.Name), 1, #lower) == lower
+      or string.sub(string.lower(value.DisplayName), 1, #lower) == lower then
+      table.insert(list, value)
+    end
+  end
+
+  return list
+end
+
+local function f3()
+  if v1.JerkConnection then
+    v1.JerkConnection:Disconnect()
+    v1.JerkConnection = nil
+  end
+
+  if v1.JerkTrack then
+    v1.JerkTrack:Stop()
+    v1.JerkTrack = nil
+  end
+end
+
+local function getRigType(character3)
+  local humanoid2 = character3 and character3:FindFirstChildOfClass("Humanoid")
+
+  if not humanoid2 then
+    return nil
+  end
+
+  return humanoid2.RigType
+end
+
+local function f4()
+  return getRigType(character) == Enum.HumanoidRigType.R15
+end
+
+local function makeAnimation(p3, animIndex)
+  if not character then
+    return
+  end
+
+  local humanoid3 = character:FindFirstChildOfClass("Humanoid")
+
+  if not humanoid3 then
+    return
+  end
+
+  local v4 = p3[animIndex]
+
+  if not v4 then
+    return
+  end
+
+  if v1.MainTrack then
+    v1.MainTrack:Stop()
+    v1.MainTrack = nil
+  end
+
+  local animation = Instance.new("Animation")
+  animation.AnimationId = v4.Id
+
+  v1.MainTrack = humanoid3:LoadAnimation(animation)
+  v1.MainTrack.Priority = Enum.AnimationPriority.Action4
+  v1.MainTrack:Play(0.1, 1, 1)
+end
+
+local function makeAnimation2()
+  if not character then
+    return
+  end
+
+  local humanoid4 = character:FindFirstChildOfClass("Humanoid")
+
+  if not humanoid4 then
+    return
+  end
+
+  local v5 = f1(getRigType(character), "Jerk")
+
+  if not v5 or not v5[1] then
+    return
+  end
+
+  if v1.JerkTrack then
+    v1.JerkTrack:Stop()
+    v1.JerkTrack = nil
+  end
+
+  local animation2 = Instance.new("Animation")
+  animation2.AnimationId = v5[1].Id
+
+  v1.JerkTrack = humanoid4:LoadAnimation(animation2)
+  v1.JerkTrack.Priority = Enum.AnimationPriority.Action4
+  v1.JerkTrack:Play(0.1, 1, 1)
+  v1.JerkTrack:AdjustSpeed(f4() and 0.7 or 0.65)
+  v1.JerkTrack.TimePosition = 0.6
+end
+
+local function f5()
+  if v1.JerkConnection then
+    v1.JerkConnection:Disconnect()
+    v1.JerkConnection = nil
+  end
+
+  makeAnimation2()
+  local v6 = 0
+
+  v1.JerkConnection = runService.Heartbeat:Connect(function(delta)
+    if not v1.Jerk then
+      return
+    end
+
+    if not character then
+      return
+    end
+
+    if not v1.JerkTrack or not v1.JerkTrack.IsPlaying then
+      makeAnimation2()
+      v6 = 0
+    else
+      v6 = v6 + delta
+
+      if v6 >= 0.2 then
+        if v1.JerkTrack.TimePosition >= (not f4() and 0.65 or 0.7) then
+          v1.JerkTrack:Stop()
+          v1.JerkTrack = nil
+          v6 = 0
+        end
+      end
+    end
+  end)
+end
+
+local f6
+
+local function getParent(actionFrame, p4, fn)
+  local parent = f6("TextButton", {
+    Name = p4,
+    Size = UDim2.new(1, 0, 0, 30),
+    BackgroundColor3 = Color3.fromRGB(20, 20, 20),
+    Text = p4,
+    TextColor3 = Color3.fromRGB(255, 255, 255),
+    Font = Enum.Font.Gotham,
+    TextSize = 12,
+    TextXAlignment = Enum.TextXAlignment.Left,
+    Parent = actionFrame,
+  })
+
+  f6("UICorner", { CornerRadius = UDim.new(0, 12), Parent = parent })
+
+  f6("UIPadding", {
+    PaddingTop = UDim.new(0, 3),
+    PaddingBottom = UDim.new(0, 3),
+    PaddingLeft = UDim.new(0, 3),
+    PaddingRight = UDim.new(0, 3),
+    Parent = parent,
+  })
+
+  local v7 = f6("ImageLabel", {
+    Name = "Checkmark",
+    BackgroundTransparency = 1,
+    BorderSizePixel = 0,
+    Image = "rbxassetid://93898873302694",
+    AnchorPoint = Vector2.new(0, 0.5),
+    Position = UDim2.new(1, -23, 0.5, 0),
+    Size = UDim2.fromOffset(20, 20),
+    Visible = false,
+    Parent = parent,
+  })
+
+  parent.MouseButton1Click:Connect(function() fn(p4, parent, v7) end)
+  return parent
+end
+
+function f6(p5, map)
+  local instance = Instance.new(p5)
+
+  for key, value2 in pairs(map) do
+    instance[key] = value2
+  end
+
+  return instance
+end
+
+local function f7()
+  local v8 = f6("ScreenGui", { Name = httpService:GenerateGUID(false), Parent = gethui() })
+
+  for _, value3 in ipairs(gethui():GetChildren()) do
+    if value3.Name == v8.Name and value3 ~= v8 then
+      value3:Destroy()
+    end
+  end
+
+  local parent2 = f6("Frame", {
+    Name = "Main",
+    Size = UDim2.new(0, 360, 0, 260),
+    BackgroundColor3 = Color3.fromRGB(10, 10, 10),
+    BackgroundTransparency = 0.04,
+    Active = true,
+    Draggable = true,
+    Parent = v8,
+  })
+
+  f6("UICorner", { CornerRadius = UDim.new(0, 15), Parent = parent2 })
+
+  f6("UIStroke", {
+    Transparency = 0.95,
+    Color = Color3.fromRGB(250, 250, 250),
+    Parent = parent2,
+  })
+
+  local parent3 = f6("Frame", {
+    Name = "Topbar",
+    Size = UDim2.new(1, 0, 0, 42),
+    BackgroundTransparency = 1,
+    Active = true,
+    Parent = parent2,
+  })
+
+  f6("UIPadding", {
+    PaddingTop = UDim.new(0, 10),
+    PaddingBottom = UDim.new(0, 10),
+    PaddingLeft = UDim.new(0, 12),
+    PaddingRight = UDim.new(0, 12),
+    Parent = parent3,
+  })
+
+  f6("TextLabel", {
+    Name = "Title",
+    Size = UDim2.new(1, 0, 1, 0),
+    Position = UDim2.new(0, 0, 0, 0),
+    Text = "Weird Bang",
+    TextColor3 = Color3.fromRGB(255, 255, 255),
+    Font = Enum.Font.GothamBold,
+    TextXAlignment = Enum.TextXAlignment.Left,
+    TextSize = 16,
+    BackgroundTransparency = 1,
+    Parent = parent3,
+  })
+
+  local parent4 = f6("Frame", {
+    Name = "UserFrame",
+    Size = UDim2.new(0, 180, 0, 36),
+    Position = UDim2.new(0, 15, 0, 52),
+    BackgroundColor3 = Color3.fromRGB(18, 18, 18),
+    Parent = parent2,
+  })
+
+  f6("UICorner", { CornerRadius = UDim.new(0, 12), Parent = parent4 })
+
+  f6("UIPadding", {
+    PaddingTop = UDim.new(0, 6),
+    PaddingBottom = UDim.new(0, 6),
+    PaddingLeft = UDim.new(0, 6),
+    PaddingRight = UDim.new(0, 6),
+    Parent = parent4,
+  })
+
+  f6("UIListLayout", {
+    SortOrder = Enum.SortOrder.LayoutOrder,
+    Padding = UDim.new(0, 10),
+    FillDirection = Enum.FillDirection.Horizontal,
+    HorizontalAlignment = Enum.HorizontalAlignment.Center,
+    VerticalAlignment = Enum.VerticalAlignment.Center,
+    Parent = parent4,
+  })
+
+  local headshot = f6("ImageLabel", {
+    Name = "Headshot",
+    Size = UDim2.new(0, 24, 0, 24),
+    Image = "rbxassetid://0",
+    BackgroundTransparency = 1,
+    Parent = parent4,
+  })
+
+  local input = f6("TextBox", {
+    Name = "Input",
+    Size = UDim2.new(1, -69, 1, 0),
+    Text = "Username..",
+    TextColor3 = Color3.fromRGB(255, 255, 255),
+    BackgroundTransparency = 1,
+    TextXAlignment = Enum.TextXAlignment.Left,
+    Font = Enum.Font.GothamSemibold,
+    TextSize = 14,
+    Parent = parent4,
+  })
+
+  local v9 = f6("TextButton", {
+    Name = "ToggleBtn",
+    Size = UDim2.new(0, 24, 0, 24),
+    Text = "Off",
+    TextColor3 = Color3.fromRGB(255, 255, 255),
+    Font = Enum.Font.GothamBold,
+    TextSize = 10,
+    BackgroundColor3 = Color3.fromRGB(40, 40, 40),
+    Parent = parent4,
+  })
+
+  f6("UICorner", { CornerRadius = UDim.new(0, 6), Parent = v9 })
+
+  local v10 = f6("Frame", {
+    Name = "ActionFrame",
+    Size = UDim2.new(0, 135, 0, 190),
+    Position = UDim2.new(1, -150, 0, 52),
+    BackgroundColor3 = Color3.fromRGB(15, 15, 15),
+    Parent = parent2,
+  })
+
+  f6("UICorner", { CornerRadius = UDim.new(0, 10), Parent = v10 })
+
+  f6("UIListLayout", {
+    SortOrder = Enum.SortOrder.LayoutOrder,
+    Padding = UDim.new(0, 3),
+    HorizontalAlignment = Enum.HorizontalAlignment.Center,
+    Parent = v10,
+  })
+
+-- https://leakd.fr
+  f6("UIPadding", {
+    PaddingTop = UDim.new(0, 8),
+    PaddingBottom = UDim.new(0, 8),
+    PaddingLeft = UDim.new(0, 8),
+    PaddingRight = UDim.new(0, 8),
+    Parent = v10,
+  })
+
+  local v11 = f6("Frame", {
+    Name = "ConfigFrame",
+    Size = UDim2.new(0, 180, 0, 140),
+    Position = UDim2.new(0, 15, 0, 102),
+    BackgroundColor3 = Color3.fromRGB(20, 20, 20),
+    Parent = parent2,
+  })
+
+  f6("UICorner", { CornerRadius = UDim.new(0, 10), Parent = v11 })
+
+  f6("UIListLayout", {
+    SortOrder = Enum.SortOrder.LayoutOrder,
+    Padding = UDim.new(0, 3),
+    HorizontalAlignment = Enum.HorizontalAlignment.Center,
+    Parent = v11,
+  })
+
+  f6("UIPadding", {
+    PaddingTop = UDim.new(0, 8),
+    PaddingBottom = UDim.new(0, 8),
+    PaddingLeft = UDim.new(0, 8),
+    PaddingRight = UDim.new(0, 8),
+    Parent = v11,
+  })
+
+  return {
+    Gui = v8,
+    Headshot = headshot,
+    Input = input,
+    BoolBtn = v9,
+    ActionFrame = v10,
+    ConfigFrame = v11,
+  }
+end
+
+local v12 = {}
+
+local function f8(configFrame, text2, key2, p6)
+  local v13 = f6("TextButton", {
+    Name = text2,
+    Size = UDim2.new(1, 0, 0, 30),
+    BackgroundColor3 = Color3.fromRGB(25, 25, 25),
+    Text = text2,
+    TextColor3 = p6 and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 255, 255),
+    Font = Enum.Font.Gotham,
+    TextSize = 12,
+    TextXAlignment = Enum.TextXAlignment.Left,
+    Parent = configFrame,
+  })
+
+  f6("UICorner", { CornerRadius = UDim.new(0, 8), Parent = v13 })
+
+  f6("UIPadding", {
+    PaddingTop = UDim.new(0, 3),
+    PaddingBottom = UDim.new(0, 3),
+    PaddingLeft = UDim.new(0, 3),
+    PaddingRight = UDim.new(0, 3),
+    Parent = v13,
+  })
+
+  local v14 = f6("Frame", {
+    Name = "Indicator",
+    Size = UDim2.new(0, 8, 0, 8),
+    Position = UDim2.new(1, -15, 0.5, 0),
+    AnchorPoint = Vector2.new(0.5, 0.5),
+    BackgroundColor3 = p6 and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(80, 80, 80),
+    Parent = v13,
+  })
+
+  f6("UICorner", { CornerRadius = UDim.new(1, 0), Parent = v14 })
+  v12[key2] = { Button = v13, Indicator = v14, Key = key2 }
+
+  v13.MouseButton1Click:Connect(function()
+    v1[key2] = not v1[key2]
+    local v15 = v1[key2]
+
+    v13.Text = text2 .. ": " .. (v15 and "On" or "Off")
+    v13.TextColor3 = v15 and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 255, 255)
+
+    v14.BackgroundColor3 = v15 and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(80, 80, 80)
+
+    if key2 == "Jerk" then
+      if v15 then
+        f5()
+      else
+        f3()
+      end
+    end
+  end)
+
+  return v13
+end
+
+local v16 = f7()
+local map2 = {}
+
+local function f9(character4)
+  local getDescendants = character4.GetDescendants
+  map2 = {}
+
+  for _, value4 in ipairs(getDescendants(character4)) do
+    if value4:IsA("BasePart") then
+      map2[value4] = value4.CanCollide
+      value4.CanCollide = false
+    end
+  end
+end
+
+local f10
+
+local function f11(selectedAction)
+  if not selectedAction then
+    return
+  end
+
+  if v1.MainTrack then
+    v1.MainTrack:Stop()
+    v1.MainTrack = nil
+  end
+
+  if selectedAction == "ReverseBang" then
+    if humanoid then
+      humanoid.Sit = false
+    end
+
+    f10(character)
+  end
+end
+
+function f10(p7)
+  for key3, value5 in pairs(map2) do
+    if key3 and key3.Parent then
+      key3.CanCollide = value5
+    end
+  end
+
+  map2 = {}
+end
+
+local v17, v18
+
+local function f12(selectedAction2, p8, checkmark)
+  f11(v1.SelectedAction)
+  v1.SelectedAction = selectedAction2
+
+  if v18 then
+    v18.Visible = false
+    v17.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+  end
+
+  checkmark.Visible = true
+  p8.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+  v17 = p8
+  v18 = checkmark
+end
+
+for _, value6 in ipairs({ "Bang", "HeadBang", "ReverseBang", "Cowgirl" }) do
+  local parent5 = getParent(v16.ActionFrame, value6, f12)
+
+  if value6 == "Bang" then
+    f12(value6, parent5, parent5:FindFirstChild("Checkmark"))
+  end
+end
+
+f8(v16.ConfigFrame, "Jerk", "Jerk", false)
+
+v16.Input:GetPropertyChangedSignal("Text"):Connect(function()
+  local text3 = v16.Input.Text
+
+  if text3 == "" or text3 == "Username.." then
+    v16.Headshot.Image = "rbxassetid://0"
+    return
+  end
+
+  local v19 = f2(text3)
+
+  if #v19 > 0 then
+    v1.Target = v19[1]
+
+    local ok, image, v20 = pcall(function()
+      return players:GetUserThumbnailAsync(
+        v19[1].UserId, Enum.ThumbnailType.AvatarBust, Enum.ThumbnailSize.Size48x48
+      )
+    end)
+
+    if ok and v20 then
+      v16.Headshot.Image = image
+    end
+  else
+    v16.Headshot.Image = "rbxassetid://0"
+  end
+end)
+
+v16.BoolBtn.MouseButton1Click:Connect(function()
+  v1.Enabled = not v1.Enabled
+  local v21, v22
+
+  if v1.Enabled then
+    v16.BoolBtn.Text = "On"
+    v16.BoolBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
+
+    if not v1.Target then
+      local v23 = f2(v16.Input.Text)
+
+      if #v23 == 0 then
+        warn("No player found")
+        v1.Enabled = false
+
+        v16.BoolBtn.Text = "Off"
+        v16.BoolBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+
+        return
+      end
+
+      v1.Target = v23[1]
+    end
+
+    v1.TargetCharacter = v1.Target.Character
+
+    if not v1.TargetCharacter then
+      warn("Target has no character")
+      v1.Enabled = false
+      return
+    end
+
+    local v24 = v3[v1.SelectedAction]
+    v21 = nil
+
+    if v24.UseAnimation then
+      local animationType2 = v24.AnimationType or "Humping"
+      v21 = f1(getRigType(character), animationType2)
+
+      if not v21 then
+        warn("Could not get animation table")
+        v1.Enabled = false
+        return
+      end
+    end
+
+    if v1.SelectedAction == "ReverseBang" then
+      f9(character)
+
+      if humanoid then
+        humanoid.Sit = true
+      end
+    end
+
+    v1.AnimIndex = 1
+    v1.Sine = 0
+
+    v22 = 0
+
+    v1.Connection = runService.Heartbeat:Connect(function(delta2)
+      if not v1.Enabled then
+        return
+      end
+
+      if not character or not humanoidRootPart then
+        return
+      end
+
+      if not v1.TargetCharacter then
+        return
+      end
+
+      local humanoidRootPart2 = v1.TargetCharacter:FindFirstChild("HumanoidRootPart")
+      local head = v1.TargetCharacter:FindFirstChild("Head")
+
+      local lowerTorso = v1.TargetCharacter:FindFirstChild("LowerTorso")
+        or v1.TargetCharacter:FindFirstChild("Torso")
+
+      if not humanoidRootPart2 then
+        return
+      end
+
+      v1.Sine = v1.Sine + 0.69
+      v22 = v22 + delta2
+      local v25 = v3[v1.SelectedAction]
+
+      if v25.UseAnimation and v21 then
+        if v22 >= 0.5 then
+          makeAnimation(v21, v1.AnimIndex)
+          v1.AnimIndex = v1.AnimIndex + 1
+
+          if v1.AnimIndex > #v21 then
+            v1.AnimIndex = 1
+          end
+
+          v22 = 0
+        end
+      end
+
+      if v1.SelectedAction == "Bang" then
+        humanoidRootPart.CFrame = humanoidRootPart2.CFrame * v25.Offset
+          * CFrame.new(0, 0, math.sin(v1.Sine) * 0.3)
+      elseif v1.SelectedAction == "HeadBang" then
+        if not head then
+          return
+        end
+
+        humanoidRootPart.CFrame = head.CFrame * v25.Offset
+        local position = humanoidRootPart2.Position
+
+        local position2 = character.PrimaryPart and character.PrimaryPart.Position
+          or humanoidRootPart.Position
+
+        character:SetPrimaryPartCFrame(CFrame.new(
+          position2, Vector3.new(position.X, position2.Y, position.Z)
+        ))
+
+        local v26 = humanoidRootPart
+        v26.CFrame = v26.CFrame * CFrame.new(0, 0, math.sin(v1.Sine) * 0.3)
+      elseif v1.SelectedAction == "ReverseBang" then
+        if not lowerTorso then
+          return
+        end
+
+        if humanoid and not humanoid.Sit then
+          humanoid.Sit = true
+        end
+
+        local cframe = lowerTorso.CFrame
+        local cframe2 = CFrame.Angles(0, math.pi, math.pi)
+        local offset = v25.Offset
+        local cframe3 = CFrame.Angles(math.pi * 0.5, 0, 0)
+        local cframe4 = CFrame.new(0, math.sin(v1.Sine) * 0.3, 0)
+        humanoidRootPart.CFrame = cframe * cframe2 * offset * cframe3 * cframe4
+
+        for _, value7 in ipairs(character:GetDescendants()) do
+          if value7:IsA("BasePart") then
+            value7.AssemblyLinearVelocity = Vector3.zero
+            value7.AssemblyAngularVelocity = Vector3.zero
+          end
+        end
+      elseif v1.SelectedAction == "Cowgirl" then
+        if not humanoidRootPart2 then
+          return
+        end
+
+        local cframe5 = CFrame.new(0, -2.1, 1)
+
+        humanoidRootPart.CFrame = humanoidRootPart2.CFrame * CFrame.Angles(0, math.pi, 0)
+          * cframe5
+
+        humanoidRootPart.CFrame = humanoidRootPart.CFrame * CFrame.Angles(math.pi * 0.5, 0, 0)
+
+        humanoidRootPart.CFrame = humanoidRootPart.CFrame
+          * CFrame.new(0, 0, math.sin(v1.Sine) * 0.26)
+      end
+    end)
+  else
+    v16.BoolBtn.Text = "Off"
+    v16.BoolBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+
+    if v1.Connection then
+      v1.Connection:Disconnect()
+      v1.Connection = nil
+    end
+
+    if v1.MainTrack then
+      v1.MainTrack:Stop()
+      v1.MainTrack = nil
+    end
+
+    if v1.SelectedAction == "ReverseBang" then
+      if humanoid then
+        humanoid.Sit = false
+      end
+
+      f10(character)
+    end
+  end
+end)
+
+if v1.Target then
+  v1.Target.CharacterAdded:Connect(function(character5)
+    if v1.Enabled then
+      v1.TargetCharacter = character5
+    end
+  end)
+end
+
+-- https://leakd.fr
