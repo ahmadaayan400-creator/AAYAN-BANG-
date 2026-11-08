@@ -1,7 +1,4 @@
---[[
-    Deоbfuѕcаtеԁ Wіtһ LeаkD
-    https://leakd.fr
-]]
+--AAYAN BANG 
 
 local function getCloneref(p1)
   return cloneref and cloneref(game:GetService(p1)) or game:GetService(p1)
@@ -312,7 +309,7 @@ local function f7()
     Name = "Title",
     Size = UDim2.new(1, 0, 1, 0),
     Position = UDim2.new(0, 0, 0, 0),
-    Text = "Weird Bang",
+    Text = "AAYAN BANG (NEW)",
     TextColor3 = Color3.fromRGB(255, 255, 255),
     Font = Enum.Font.GothamBold,
     TextXAlignment = Enum.TextXAlignment.Left,
@@ -789,4 +786,4 @@ if v1.Target then
   end)
 end
 
--- https://leakd.fr
+
